@@ -23,6 +23,43 @@ if [ -z "$AMDGPU_TARGETS" ]; then
   echo "Using default amdgpu_targets: $AMDGPU_TARGETS"
 fi
 
+function fix_cmake_library_paths() {
+  local glog_lib="${CMAKE_PREFIX_PATH}/lib/libglog.so"
+  local crypto_lib="${CMAKE_PREFIX_PATH}/lib/libcrypto.so"
+  local ssl_lib="${CMAKE_PREFIX_PATH}/lib/libssl.so"
+
+  # Fix CMakeCache.txt - combine all expressions into one sed call
+  if [ -f CMakeCache.txt ]; then
+    sed -i \
+      -e "s|^GLOG_LIBRARY:.*|GLOG_LIBRARY:FILEPATH=${glog_lib}|g" \
+      -e "s|GLOG_LIBRARY-NOTFOUND|${glog_lib}|g" \
+      -e "s|OPENSSL_CRYPTO_LIBRARY-NOTFOUND|${crypto_lib}|g" \
+      -e "s|OPENSSL_SSL_LIBRARY-NOTFOUND|${ssl_lib}|g" \
+      CMakeCache.txt 2>/dev/null || true
+  fi
+
+  # Fix build.ninja - handle both -lGLOG_LIBRARY-NOTFOUND and GLOG_LIBRARY-NOTFOUND
+  # The -l version should become just the full path (no -l flag)
+  if [ -f build.ninja ]; then
+    sed -i \
+      -e "s|-lGLOG_LIBRARY-NOTFOUND|${glog_lib}|g" \
+      -e "s|GLOG_LIBRARY-NOTFOUND|${glog_lib}|g" \
+      -e "s|OPENSSL_CRYPTO_LIBRARY-NOTFOUND|${crypto_lib}|g" \
+      -e "s|OPENSSL_SSL_LIBRARY-NOTFOUND|${ssl_lib}|g" \
+      build.ninja 2>/dev/null || true
+
+    # Verify the fix worked - if still found, try more aggressive patterns
+    if grep -q "GLOG_LIBRARY-NOTFOUND" build.ninja 2>/dev/null; then
+      # Try with escaped characters and different patterns
+      sed -i \
+        -e "s|\"-lGLOG_LIBRARY-NOTFOUND\"|${glog_lib}|g" \
+        -e "s|'\"-lGLOG_LIBRARY-NOTFOUND\"'|${glog_lib}|g" \
+        -e "s| GLOG_LIBRARY-NOTFOUND | ${glog_lib} |g" \
+        build.ninja 2>/dev/null || true
+    fi
+  fi
+}
+
 function do_cmake_build() {
   local source_dir="$1"
   local extra_flags="$2"
@@ -39,9 +76,47 @@ function do_cmake_build() {
     -DBUILD_SHARED_LIBS=OFF \
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
     -DCMAKE_CXX_STANDARD=20 \
+    -DOPENSSL_ROOT_DIR="$CMAKE_PREFIX_PATH" \
+    -DOPENSSL_CRYPTO_LIBRARY="$CMAKE_PREFIX_PATH/lib/libcrypto.so" \
+    -DOPENSSL_SSL_LIBRARY="$CMAKE_PREFIX_PATH/lib/libssl.so" \
+    -DGLOG_LIBRARY="$CMAKE_PREFIX_PATH/lib/libglog.so" \
+    -DGLOG_INCLUDE_DIR="$CMAKE_PREFIX_PATH/include/glog" \
     "$extra_flags" \
     -S "${source_dir}"
-  ninja
+  # Fix library paths after CMake configuration
+  fix_cmake_library_paths
+
+  # Run ninja with retry logic for CMake re-runs
+  local max_retries=3
+  local retry=0
+  local build_success=false
+
+  while [ $retry -lt $max_retries ]; do
+    # Always fix paths before building, in case CMake regenerated files
+    fix_cmake_library_paths
+
+    if ninja 2>&1 | tee /tmp/ninja_output.log; then
+      build_success=true
+      break
+    fi
+
+    # Check if CMake was re-run or if we have NOTFOUND issues
+    if grep -q "Re-running CMake\|GLOG_LIBRARY-NOTFOUND\|OPENSSL.*-NOTFOUND" /tmp/ninja_output.log 2>/dev/null; then
+      echo "CMake was re-run or NOTFOUND detected, fixing paths and retrying..."
+      fix_cmake_library_paths
+      retry=$((retry + 1))
+    else
+      # Real build error, exit
+      echo "Build failed with non-CMake error. Exiting."
+      exit 1
+    fi
+  done
+
+  if [ "$build_success" != "true" ]; then
+    echo "Build failed after $max_retries retries"
+    exit 1
+  fi
+
   ninja install
 }
 
@@ -147,7 +222,7 @@ function build_third_party {
     build_fb_oss_library "https://github.com/gflags/gflags.git" "v2.2.2" gflags "-DBUILD_SHARED_LIBS=ON"
     # we need both static and dynamic glog since thrift generator can't
     # statically link against glog.
-    build_fb_oss_library "https://github.com/google/glog.git" "v0.4.0" glog
+    #build_fb_oss_library "https://github.com/google/glog.git" "v0.4.0" glog
     build_fb_oss_library "https://github.com/google/glog.git" "v0.4.0" glog "-DBUILD_SHARED_LIBS=ON"
     build_fb_oss_library "https://github.com/facebook/zstd.git" "v1.5.6" zstd
     build_automake_library "https://github.com/jedisct1/libsodium.git" "1.0.20-RELEASE" sodium

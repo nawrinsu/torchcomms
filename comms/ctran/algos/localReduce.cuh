@@ -3,6 +3,12 @@
 #pragma once
 
 #include <assert.h>
+#if defined(USE_ROCM) || defined(__HIP_PLATFORM_AMD__)
+#include <hip/hip_runtime.h>
+#include <hip/hip_bf16.h>
+#include <hip/hip_fp16.h>
+#include <hip/hip_fp8.h>
+#else
 #include <cuda.h>
 #if CUDART_VERSION >= 11000
 #include <cuda_bf16.h>
@@ -10,12 +16,6 @@
 #if CUDART_VERSION >= 11080
 #include <cuda_fp8.h>
 #endif
-
-#if defined(__HIP_PLATFORM_AMD__)
-#include <cuda_bf16.h>
-
-// TODO: Add this mapping to "cuda_to_hip_mappings.py" (See T233054942).
-#include <hip/hip_fp8.h>
 #endif
 
 #include "comms/ctran/utils/DevUtils.cuh"
@@ -138,7 +138,7 @@ struct __align__(16) T_NBytes {
     auto out = *this;
 
     for (int i = 0; i < kWords; ++i) {
-      out.v[i] = out.v[i] / divisor;
+      out.v[i] = T(float(out.v[i]) / float(divisor));
     }
 
     return out;
@@ -228,7 +228,7 @@ __device__ __forceinline__ void localReduceVectorized(
       }
 
       if constexpr (RedOp == commAvg) {
-        s[j][0] = s[j][0] / int(nRanks);
+        s[j][0] = s[j][0] / float(nRanks);
       }
 
 #pragma unroll
@@ -252,7 +252,7 @@ __device__ __forceinline__ void localReduceVectorized(
     }
 
     if constexpr (RedOp == commAvg) {
-      s = s / int(nRanks);
+      s = T(float(s) / float(nRanks));
     }
 
 #pragma unroll
@@ -321,7 +321,7 @@ __device__ __forceinline__ void localReduceFallback(
       }
 
       if constexpr (RedOp == commAvg) {
-        s[j][0] = s[j][0] / int(nRanks);
+        s[j][0] = T(float(s[j][0]) / float(nRanks));
       }
 
       for (int d = 0; d < ndsts; ++d) {
@@ -340,7 +340,7 @@ __device__ __forceinline__ void localReduceFallback(
     }
 
     if constexpr (RedOp == commAvg) {
-      s = s / int(nRanks);
+      s = T(float(s) / float(nRanks));
     }
 
     for (int d = 0; d < ndsts; ++d) {
@@ -544,7 +544,7 @@ __device__ __forceinline__ void localReduceForDequantAllToAll(
 #pragma unroll
     for (auto j = 0; j < kUnroll; ++j) {
       if constexpr (RedOp == commAvg) {
-        res[j][0] = res[j][0] / int(nRanks);
+        res[j][0] = RedT(float(res[j][0]) / float(nRanks));
       }
       dst[i + j * kWarpSize] = ctran::utils::castTo<RedT, T>(res[j][0]);
     }
@@ -574,7 +574,7 @@ __device__ __forceinline__ void localReduceForDequantAllToAll(
     }
 
     if constexpr (RedOp == commAvg) {
-      res[0][0] = res[0][0] / int(nRanks);
+      res[0][0] = RedT(float(res[0][0]) / float(nRanks));
     }
     dst[i] = ctran::utils::castTo<RedT, T>(res[0][0]);
   }

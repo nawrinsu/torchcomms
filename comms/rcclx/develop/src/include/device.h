@@ -103,8 +103,8 @@ union ncclLLFifoLine {
   #endif
   #if defined (__gfx950__)
   // 512 is causing invalid ISA errors, so use 256 instead
-  // #define NCCL_MAX_NTHREADS 512
-  #define NCCL_MAX_NTHREADS 256
+  #define NCCL_MAX_NTHREADS 512
+  //#define NCCL_MAX_NTHREADS 256
   #else
   #define NCCL_MAX_NTHREADS 256
   #endif

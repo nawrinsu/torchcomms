@@ -1,0 +1,30 @@
+// Copyright (c) Meta Platforms, Inc. and affiliates.
+
+#include "comms/ctran/algos/ReduceScatter/ReduceScatterRing.cuh"
+
+// Explicit template instantiations for ReduceScatterRing kernels
+// For each data type, instantiate for all reduction operations: Sum, Prod, Avg, Max, Min
+
+#define INSTANTIATE_REDUCESCATTER_RING(T) \
+  DECL_CTRAN_REDUCESCATTERRING_KERN(T, commSum); \
+  DECL_CTRAN_REDUCESCATTERRING_KERN(T, commProd); \
+  DECL_CTRAN_REDUCESCATTERRING_KERN(T, commAvg); \
+  DECL_CTRAN_REDUCESCATTERRING_KERN(T, commMax); \
+  DECL_CTRAN_REDUCESCATTERRING_KERN(T, commMin);
+
+INSTANTIATE_REDUCESCATTER_RING(int8_t);
+INSTANTIATE_REDUCESCATTER_RING(uint8_t);
+INSTANTIATE_REDUCESCATTER_RING(int32_t);
+INSTANTIATE_REDUCESCATTER_RING(uint32_t);
+INSTANTIATE_REDUCESCATTER_RING(int64_t);
+INSTANTIATE_REDUCESCATTER_RING(uint64_t);
+INSTANTIATE_REDUCESCATTER_RING(half);
+INSTANTIATE_REDUCESCATTER_RING(float);
+INSTANTIATE_REDUCESCATTER_RING(double);
+#if defined(__CUDA_BF16_TYPES_EXIST__) || defined(__HIP_PLATFORM_AMD__)
+INSTANTIATE_REDUCESCATTER_RING(__nv_bfloat16);
+#endif
+#if defined(__CUDA_FP8_TYPES_EXIST__) && defined(NCCL_ENABLE_FP8)
+INSTANTIATE_REDUCESCATTER_RING(__nv_fp8_e4m3);
+INSTANTIATE_REDUCESCATTER_RING(__nv_fp8_e5m2);
+#endif

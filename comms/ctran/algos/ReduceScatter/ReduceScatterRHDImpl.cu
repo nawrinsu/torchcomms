@@ -1,0 +1,30 @@
+// Copyright (c) Meta Platforms, Inc. and affiliates.
+
+#include "comms/ctran/algos/ReduceScatter/ReduceScatterRHD.cuh"
+
+// Explicit template instantiations for ReduceScatterRHD kernels
+// For each data type, instantiate for all reduction operations: Sum, Prod, Avg, Max, Min
+
+#define INSTANTIATE_REDUCESCATTER_RHD(T) \
+  DECL_CTRAN_REDUCESCATTERRHD_KERN(T, commSum); \
+  DECL_CTRAN_REDUCESCATTERRHD_KERN(T, commProd); \
+  DECL_CTRAN_REDUCESCATTERRHD_KERN(T, commAvg); \
+  DECL_CTRAN_REDUCESCATTERRHD_KERN(T, commMax); \
+  DECL_CTRAN_REDUCESCATTERRHD_KERN(T, commMin);
+
+INSTANTIATE_REDUCESCATTER_RHD(int8_t);
+INSTANTIATE_REDUCESCATTER_RHD(uint8_t);
+INSTANTIATE_REDUCESCATTER_RHD(int32_t);
+INSTANTIATE_REDUCESCATTER_RHD(uint32_t);
+INSTANTIATE_REDUCESCATTER_RHD(int64_t);
+INSTANTIATE_REDUCESCATTER_RHD(uint64_t);
+INSTANTIATE_REDUCESCATTER_RHD(half);
+INSTANTIATE_REDUCESCATTER_RHD(float);
+INSTANTIATE_REDUCESCATTER_RHD(double);
+#if defined(__CUDA_BF16_TYPES_EXIST__) || defined(__HIP_PLATFORM_AMD__)
+INSTANTIATE_REDUCESCATTER_RHD(__nv_bfloat16);
+#endif
+#if defined(__CUDA_FP8_TYPES_EXIST__) && defined(NCCL_ENABLE_FP8)
+INSTANTIATE_REDUCESCATTER_RHD(__nv_fp8_e4m3);
+INSTANTIATE_REDUCESCATTER_RHD(__nv_fp8_e5m2);
+#endif

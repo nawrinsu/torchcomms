@@ -652,10 +652,19 @@ set(SRC_FILES
   src/misc/socket.cc
   src/misc/strongstream.cc
   src/misc/utils.cc
+  src/misc/mlx5dvwrap.cc
+  src/misc/mlx5dvsymbols.cc
   src/mnnvl.cc
   src/msccl.cc
   src/nccl.h
   src/plugin/net.cc
+  src/plugin/plugin_open.cc
+  src/plugin/tuner.cc
+  src/plugin/net/net_v6.cc
+  src/plugin/net/net_v7.cc
+  src/plugin/net/net_v8.cc
+  src/plugin/net/net_v9.cc
+  src/plugin/net/net_v10.cc
   src/proxy.cc
   src/ras/client.cc
   src/ras/client_support.cc
@@ -666,6 +675,7 @@ set(SRC_FILES
   src/ras/rasnet.cc
   src/rccl.h
   src/rccl_wrap.cc
+  src/symmetric.cc
   src/register/coll_reg.cc
   src/register/register.cc
   src/register/sendrecv_reg.cc
@@ -785,9 +795,9 @@ set(CTRAN_FILES
   comms/ctran/algos/AllToAll/AllToAllvDynamicSplit.cc
   comms/ctran/algos/AllToAll/AllToallvDynamicSplitNonContig.cc
   comms/ctran/algos/AllToAll/AllToAllvImpl.h
-  comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.cc
-  comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.h
-  comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllvImpl.h
+  #comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.cc
+  #comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.h
+  #comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllvImpl.h
   comms/ctran/algos/AllToAll/Types.h
 
   comms/ctran/algos/AllToAllvDedup/AlgoImpl.cc
@@ -863,6 +873,8 @@ set(CTRAN_FILES
   comms/ctran/backends/socket/CtranSocket.h
   comms/ctran/bootstrap/Socket.cc
   comms/ctran/bootstrap/Socket.h
+  comms/ctran/bootstrap/AbortableSocket.cc
+  comms/ctran/bootstrap/AsyncSocket.cc
   comms/ctran/commstate/CommStateX.cc
   comms/ctran/commstate/CommStateXDev.h
   comms/ctran/commstate/CommStateX.h
@@ -887,16 +899,18 @@ set(CTRAN_FILES
   comms/ctran/hints/HintUtils.h
   #comms/ctran/ibverbx/benchmarks/IbverbxIbEventBench.cc
   #comms/ctran/ibverbx/benchmarks/IbverbxVirtualQpBench.cc
-  comms/ctran/ibverbx/fb/ibgda/DeviceQueuePair.h
-  comms/ctran/ibverbx/fb/ibgda/SegmentBuilder.h
-  comms/ctran/ibverbx/fb/ibgda/Utils.h
+  #comms/ctran/ibverbx/fb/ibgda/DeviceQueuePair.h
+  #comms/ctran/ibverbx/fb/ibgda/SegmentBuilder.h
+  #comms/ctran/ibverbx/fb/ibgda/Utils.h
   comms/ctran/ibverbx/Ibvcore.h
   comms/ctran/ibverbx/Ibverbx.cc
+  comms/ctran/ibverbx/IbverbxSymbols.cc
   comms/ctran/ibverbx/Ibverbx.h
   comms/ctran/ibverbx/Coordinator.h
 
   #Ctran kernels
   comms/ctran/algos/AllGather/AllGatherDirect.cuh
+  comms/ctran/algos/AllGather/AllGatherDirectImpl.cu
   comms/ctran/algos/AllGather/AllGatherRecDbl.cu
   comms/ctran/algos/AllGather/AllGatherRing.cu
   comms/ctran/algos/AllGatherP/AllGatherP.cu
@@ -904,14 +918,20 @@ set(CTRAN_FILES
   comms/ctran/algos/AllGatherP/PipelineImpl.cu
   comms/ctran/algos/AllReduce/AllReduceARG.cuh
   comms/ctran/algos/AllReduce/AllReduceDirect.cuh
+  comms/ctran/algos/AllReduce/AllReduceDirectImpl.cu
   comms/ctran/algos/AllReduce/AllReduceRingCommon.cuh
   comms/ctran/algos/AllReduce/AllReduceRing.cuh
+  comms/ctran/algos/AllReduce/AllReduceRingImpl.cu
   comms/ctran/algos/AllReduce/AllReduceShm.cu
   comms/ctran/algos/AllReduce/AllReduceShm.cuh
   comms/ctran/algos/AllToAll/AllToAll.cuh
+  comms/ctran/algos/AllToAll/AllToAllImpl.cu
   comms/ctran/algos/AllToAll/AllToAllDedup.cuh
+  comms/ctran/algos/AllToAll/AllToAllDedupImpl.cu
   comms/ctran/algos/AllToAll/AllToAllPImpl.cu
+  comms/ctran/algos/AllToAll/AllToAllvDynamicImpl.cu
   comms/ctran/algos/AllToAll/AllToAllv.cuh
+  comms/ctran/algos/AllToAll/AllToAllvImpl.cu
   comms/ctran/algos/AllToAll/AllToAllvDynamic.cuh
   comms/ctran/algos/AllToAllvDedup/ExecCommon.cuh
   comms/ctran/algos/AllToAllvDedup/ExecImpl.cu
@@ -938,22 +958,27 @@ set(CTRAN_FILES
   comms/ctran/algos/DevShmState.cuh
   comms/ctran/algos/localReduce.cuh
   comms/ctran/algos/ReduceScatter/ReduceScatterDirect.cuh
+  comms/ctran/algos/ReduceScatter/ReduceScatterDirectImpl.cu
   comms/ctran/algos/ReduceScatter/ReduceScatterRHD.cuh
+  comms/ctran/algos/ReduceScatter/ReduceScatterRHDImpl.cu
   comms/ctran/algos/ReduceScatter/ReduceScatterRing.cuh
+  comms/ctran/algos/ReduceScatter/ReduceScatterRingImpl.cu
   comms/ctran/algos/RMA/Get.cu
   comms/ctran/algos/RMA/PutSignal.cu
   comms/ctran/algos/SendRecv/SendRecv.cu
   comms/ctran/utils/DevUtils.cuh
 
   comms/ctran/ibverbx/DqplbSeqTracker.h
-  comms/ctran/ibverbx/fb/ibgda/DeviceQueuePair.h
-  comms/ctran/ibverbx/fb/ibgda/SegmentBuilder.h
-  comms/ctran/ibverbx/fb/ibgda/Utils.h
+  #comms/ctran/ibverbx/fb/ibgda/DeviceQueuePair.h
+  #comms/ctran/ibverbx/fb/ibgda/SegmentBuilder.h
+  #comms/ctran/ibverbx/fb/ibgda/Utils.h
   comms/ctran/ibverbx/IbvCommon.h
   comms/ctran/ibverbx/Ibvcore.h
   comms/ctran/ibverbx/IbvCq.h
+  comms/ctran/ibverbx/device/structs.h
   comms/ctran/ibverbx/IbvDevice.h
   comms/ctran/ibverbx/Ibverbx.h
+  comms/ctran/ibverbx/Mlx5dv.h
   comms/ctran/ibverbx/IbverbxSymbols.h
   comms/ctran/ibverbx/IbvMr.h
   comms/ctran/ibverbx/IbvPd.h
@@ -978,14 +1003,14 @@ set(CTRAN_FILES
   comms/ctran/mapper/CtranMapperRegMem.h
   comms/ctran/mapper/CtranMapperRequest.cc
   comms/ctran/mapper/CtranMapperTypes.h
-  comms/ctran/mapper/fb/IcompressionManager.h
+  #comms/ctran/mapper/fb/IcompressionManager.h
   comms/ctran/memory/memCacheAllocator.cc
   comms/ctran/memory/memCacheAllocator.h
   comms/ctran/memory/SlabAllocator.cc
   comms/ctran/memory/SlabAllocator.h
   comms/ctran/memory/Utils.cc
   comms/ctran/memory/Utils.h
-  comms/tcp_devmem/transport.h
+  #comms/tcp_devmem/transport.h
   comms/ctran/profiler/AlgoProfilerModule.cc
   comms/ctran/profiler/AlgoProfilerModule.h
   comms/ctran/profiler/CtranProfiler.cc
@@ -1132,7 +1157,9 @@ set(COMMON_FILES
   comms/utils/colltrace/GenericMetadata.h
   comms/utils/colltrace/NetworkPerfMonitor.h
   comms/utils/colltrace/plugins/CommDumpPlugin.h
+  comms/utils/colltrace/plugins/CommDumpPlugin.cc
   comms/utils/colltrace/plugins/WatchdogPlugin.h
+  comms/utils/colltrace/plugins/WatchdogPlugin.cc
 
   comms/utils/CommsMaybeChecks.h
   comms/utils/commSpecs.cc
@@ -1855,8 +1882,8 @@ target_link_libraries(rccl PRIVATE
 target_link_libraries(rccl PRIVATE
   $ENV{CONDA_PREFIX}/lib/libwangle.a
   $ENV{CONDA_PREFIX}/lib/libfizz.a
-  $ENV{CONDA_PREFIX}/lib/libcrypto.a
-  $ENV{CONDA_PREFIX}/lib/libssl.a
+  $ENV{CONDA_PREFIX}/lib/libcrypto.so
+  $ENV{CONDA_PREFIX}/lib/libssl.so
   $ENV{CONDA_PREFIX}/lib/libxxhash.a
 )
 
@@ -1864,11 +1891,11 @@ target_link_libraries(rccl PRIVATE
 target_link_libraries(rccl PRIVATE
   $ENV{CONDA_PREFIX}/lib/libfolly.a
   $ENV{CONDA_PREFIX}/lib/libdouble-conversion.a
-  $ENV{CONDA_PREFIX}/lib/libglog.a
+  $ENV{CONDA_PREFIX}/lib/libglog.so
   $ENV{CONDA_PREFIX}/lib/libevent.a
   $ENV{CONDA_PREFIX}/lib/libz.a
-  $ENV{CONDA_PREFIX}/lib/libssl.a
-  $ENV{CONDA_PREFIX}/lib/libcrypto.a
+  $ENV{CONDA_PREFIX}/lib/libssl.so
+  $ENV{CONDA_PREFIX}/lib/libcrypto.so
   $ENV{CONDA_PREFIX}/lib/libbz2.a
   $ENV{CONDA_PREFIX}/lib/libzstd.a
   $ENV{CONDA_PREFIX}/lib/libsodium.a
@@ -1876,8 +1903,8 @@ target_link_libraries(rccl PRIVATE
 
 # Other linker flags
 target_link_libraries(rccl PRIVATE
-  $ENV{CONDA_PREFIX}/lib/libglog.a
-  $ENV{CONDA_PREFIX}/lib/libgflags.a
+  $ENV{CONDA_PREFIX}/lib/libglog.so
+  $ENV{CONDA_PREFIX}/lib/libgflags.so
   $ENV{CONDA_PREFIX}/lib/libboost_context.a
   $ENV{CONDA_PREFIX}/lib/libfmt.a
 
