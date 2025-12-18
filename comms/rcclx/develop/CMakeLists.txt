@@ -644,6 +644,7 @@ set(SRC_FILES
   src/include/proxy_trace/proxy_trace.h
   src/include/register_inline.h
   src/misc/recorder.cc
+  src/misc/proxy_trace/proxy_trace.cc
   src/misc/rocm_smi_wrap.cc
   src/misc/rocmwrap.cc
   src/misc/roctx.cc
