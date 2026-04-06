@@ -62,7 +62,7 @@ function build_fb_oss_library() {
     source_dir="../${library_name}/cmake_unofficial"
   fi
 
-  export LDFLAGS="-Wl,--allow-shlib-undefined"
+  export LDFLAGS="-Wl,--allow-shlib-undefined -Wl,--no-as-needed"
   rm -rf build-output
   mkdir -p build-output
   pushd build-output
@@ -318,7 +318,7 @@ fi
 
 # Install pyyaml if not already installed (required by extractcvars.py)
 if [[ -z "${NCCL_SKIP_CONDA_INSTALL}" ]]; then
-  conda install pyyaml --yes
+  conda install -c conda-forge pyyaml --yes --override-channels
 fi
 
 # Run the extractcvars.py script directly to generate the files

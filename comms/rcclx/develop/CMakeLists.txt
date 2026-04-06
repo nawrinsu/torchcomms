@@ -830,9 +830,9 @@ set(CTRAN_FILES
   comms/ctran/algos/AllToAll/AllToAllvDynamicSplit.cc
   comms/ctran/algos/AllToAll/AllToallvDynamicSplitNonContig.cc
   comms/ctran/algos/AllToAll/AllToAllvImpl.h
-  comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.cc
-  comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.h
-  comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllvImpl.h
+# comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.cc
+# comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.h
+# comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllvImpl.h
   comms/ctran/algos/AllToAll/HostTypes.h
   comms/ctran/algos/AllToAll/Types.h
   comms/ctran/algos/AllToAllvDedup/AlgoImpl.cc
@@ -1039,7 +1039,7 @@ set(CTRAN_FILES
   comms/ctran/mapper/CtranMapperImpl.h
   comms/ctran/mapper/CtranMapperRequest.cc
   comms/ctran/mapper/CtranMapperTypes.h
-  comms/ctran/mapper/fb/IcompressionManager.h
+# comms/ctran/mapper/fb/IcompressionManager.h
   comms/ctran/memory/memCacheAllocator.cc
   comms/ctran/memory/memCacheAllocator.h
   comms/ctran/memory/SlabAllocator.cc
@@ -1109,7 +1109,7 @@ set(CTRAN_FILES
   comms/ctran/window/window.cc
   comms/ctran/window/WinHintUtils.cc
   comms/ctran/window/WinHintUtils.h
-  comms/tcp_devmem/transport.h # extra requirement
+# comms/tcp_devmem/transport.h # extra requirement
   comms/utils/MemUtils.h # extra requirement
 )
 
@@ -1171,7 +1171,6 @@ set(COMMON_FILES
   comms/pipes/GpuMemHandler.h
 # comms/pipes/IbgdaBuffer.h # manual
   comms/pipes/MultiPeerDeviceHandle.cuh
-  comms/pipes/MultiPeerDeviceTransport.cuh
 # comms/pipes/MultipeerIbgdaDeviceTransport.cuh # manual
 # comms/pipes/MultipeerIbgdaTransport.cc # manual
 # comms/pipes/MultipeerIbgdaTransportCuda.cu # manual
@@ -1196,11 +1195,8 @@ set(COMMON_FILES
   comms/pipes/TopologyDiscovery.cc
   comms/pipes/TopologyDiscovery.h
   comms/pipes/Transport.cuh
-  comms/pipes/window/DeviceWindowBarrier.cuh
-  comms/pipes/window/DeviceWindowMemory.cuh
-  comms/pipes/window/DeviceWindowSignal.cuh
-  comms/pipes/window/WindowMemory.cc
-  comms/pipes/window/WindowMemory.h
+  comms/pipes/CudaDriverLazy.cc
+  comms/pipes/CudaDriverLazy.h
   comms/utils/checks.h
   comms/utils/colltrace/AlgoStats.cc
   comms/utils/colltrace/AlgoStats.h

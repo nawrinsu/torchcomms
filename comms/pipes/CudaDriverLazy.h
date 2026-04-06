@@ -14,10 +14,14 @@
 //   }
 //   CUresult err = comms::pipes::pfn_cuMemCreate(&handle, size, &prop, 0);
 
+#ifdef __HIP_PLATFORM_AMD__
+#include <hip/hip_runtime.h>
+#else
 #include <cuda.h>
 
 #include <cudaTypedefs.h>
 #include <cuda_runtime.h>
+#endif
 
 namespace comms::pipes {
 
@@ -25,6 +29,28 @@ namespace comms::pipes {
 /// Thread-safe (uses std::call_once). Returns 0 on success, non-zero if
 /// the CUDA driver is unavailable (e.g., on CPU-only machines).
 int cuda_driver_lazy_init();
+
+#if defined(__HIP_PLATFORM_AMD__) || defined(__HIPCC__)
+
+extern decltype(&hipDeviceGet) pfn_cuDeviceGet;
+extern decltype(&hipDeviceGetAttribute) pfn_cuDeviceGetAttribute;
+extern decltype(&hipCtxGetCurrent) pfn_cuCtxGetCurrent;
+extern decltype(&hipDrvGetErrorString) pfn_cuGetErrorString;
+extern decltype(&hipMemCreate) pfn_cuMemCreate;
+extern decltype(&hipMemRelease) pfn_cuMemRelease;
+extern decltype(&hipMemAddressReserve) pfn_cuMemAddressReserve;
+extern decltype(&hipMemAddressFree) pfn_cuMemAddressFree;
+extern decltype(&hipMemMap) pfn_cuMemMap;
+extern decltype(&hipMemUnmap) pfn_cuMemUnmap;
+extern decltype(&hipMemSetAccess) pfn_cuMemSetAccess;
+extern decltype(&hipMemGetAllocationGranularity) pfn_cuMemGetAllocationGranularity;
+extern decltype(&hipMemExportToShareableHandle) pfn_cuMemExportToShareableHandle;
+extern decltype(&hipMemImportFromShareableHandle) pfn_cuMemImportFromShareableHandle;
+extern decltype(&hipMemGetAllocationPropertiesFromHandle) pfn_cuMemGetAllocationPropertiesFromHandle;
+extern decltype(&hipMemRetainAllocationHandle) pfn_cuMemRetainAllocationHandle;
+extern decltype(&hipMemGetAddressRange) pfn_cuMemGetAddressRange;
+
+#else
 
 // Device queries
 extern PFN_cuDeviceGet_v2000 pfn_cuDeviceGet;
@@ -61,5 +87,7 @@ extern PFN_cuMemGetAllocationPropertiesFromHandle_v10020
 // Allocation queries
 extern PFN_cuMemRetainAllocationHandle_v11000 pfn_cuMemRetainAllocationHandle;
 extern PFN_cuMemGetAddressRange_v3020 pfn_cuMemGetAddressRange;
+
+#endif
 
 } // namespace comms::pipes

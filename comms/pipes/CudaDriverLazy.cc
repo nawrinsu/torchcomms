@@ -7,7 +7,35 @@
 
 namespace comms::pipes {
 
-// Function pointer globals (initially nullptr).
+#if defined(__HIP_PLATFORM_AMD__) || defined(__HIPCC__)
+
+// ROCm: assign directly to HIP driver functions (no lazy loading needed,
+// there is no libcuda.so.1 dependency to avoid on ROCm).
+decltype(&hipDeviceGet) pfn_cuDeviceGet = &hipDeviceGet;
+decltype(&hipDeviceGetAttribute) pfn_cuDeviceGetAttribute = &hipDeviceGetAttribute;
+decltype(&hipCtxGetCurrent) pfn_cuCtxGetCurrent = &hipCtxGetCurrent;
+decltype(&hipDrvGetErrorString) pfn_cuGetErrorString = &hipDrvGetErrorString;
+decltype(&hipMemCreate) pfn_cuMemCreate = &hipMemCreate;
+decltype(&hipMemRelease) pfn_cuMemRelease = &hipMemRelease;
+decltype(&hipMemAddressReserve) pfn_cuMemAddressReserve = &hipMemAddressReserve;
+decltype(&hipMemAddressFree) pfn_cuMemAddressFree = &hipMemAddressFree;
+decltype(&hipMemMap) pfn_cuMemMap = &hipMemMap;
+decltype(&hipMemUnmap) pfn_cuMemUnmap = &hipMemUnmap;
+decltype(&hipMemSetAccess) pfn_cuMemSetAccess = &hipMemSetAccess;
+decltype(&hipMemGetAllocationGranularity) pfn_cuMemGetAllocationGranularity = &hipMemGetAllocationGranularity;
+decltype(&hipMemExportToShareableHandle) pfn_cuMemExportToShareableHandle = &hipMemExportToShareableHandle;
+decltype(&hipMemImportFromShareableHandle) pfn_cuMemImportFromShareableHandle = &hipMemImportFromShareableHandle;
+decltype(&hipMemGetAllocationPropertiesFromHandle) pfn_cuMemGetAllocationPropertiesFromHandle = &hipMemGetAllocationPropertiesFromHandle;
+decltype(&hipMemRetainAllocationHandle) pfn_cuMemRetainAllocationHandle = &hipMemRetainAllocationHandle;
+decltype(&hipMemGetAddressRange) pfn_cuMemGetAddressRange = &hipMemGetAddressRange;
+
+int cuda_driver_lazy_init() {
+  return 0;
+}
+
+#else
+
+// CUDA: lazy-load driver symbols via cudaGetDriverEntryPoint
 PFN_cuDeviceGet_v2000 pfn_cuDeviceGet = nullptr;
 PFN_cuDeviceGetAttribute_v2000 pfn_cuDeviceGetAttribute = nullptr;
 PFN_cuCtxGetCurrent_v4000 pfn_cuCtxGetCurrent = nullptr;
@@ -88,5 +116,7 @@ int cuda_driver_lazy_init() {
   std::call_once(init_flag, do_init);
   return init_result;
 }
+
+#endif
 
 } // namespace comms::pipes
